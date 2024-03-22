@@ -11,13 +11,13 @@ const port = 3001;
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'todo',
-    password: 'Seraj@1436',
-    port: 5432
+    database: 'todo_database',
+    password: 'Zombies75$',
+    port: 7551
 });
 
 app.get('/', (req, res) => {
-    res.status(200).json({ message: 'Welcome to the TODO API' });
+    res.status(200).json({ message: 'Welcome to the Rohit TODO API' });
 });
 
 app.post('/new', (req, res) => {
