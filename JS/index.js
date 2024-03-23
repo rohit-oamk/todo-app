@@ -1,70 +1,63 @@
-const BACKEND_ROOT_URL = 'http://localhost:3001'
+const BACKEND_ROOT_URL = 'http://localhost:3001';
+import { Todos } from './class/Todos.js';
+
+const todos = new Todos(BACKEND_ROOT_URL);
 
 const list = document.querySelector('ul');
 const input = document.querySelector('input');
 
-input.disabled = true
-const renderTask = (description) => {
-    const li = document.createElement('li')
-    li.setAttribute('class', 'list-group-item')
-    li.innerHTML = description
-    list.append(li)
+input.disabled = true;
+
+const renderTask = (task) => {
+    const li = document.createElement('li');
+    li.setAttribute('class', 'list-group-item');
+    li.innerHTML = task.getText(); 
+    list.appendChild(li);
 }
 
-const getTasks = async () => {
-    try {
-        const response = await fetch(BACKEND_ROOT_URL);
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch tasks: ' + response.statusText);
-        }
-
-        const json = await response.json();
-
-        if (!Array.isArray(json)) {
-            throw new Error('Response is not an array');
-        }
-
-        json.forEach(task => {
-            renderTask(task.description);
-        });
-
+const getTasks = () => {
+    todos.getTasks().then((tasks) => {
+        tasks.forEach(task => {
+            renderTask(task)
+        })
         input.disabled = false;
-    } catch (error) {
-        console.error("Error retrieving tasks: ", error);
-        alert("Error retrieving tasks: " + error.message);
-    }
-};
+    }).catch ((error) =>{
+        alert(error)
+    })
+}
 
 const saveTask = async (task) => {
     try {
-    const json = JSON.stringify({description: task})
-    const response = await fetch (BACKEND_ROOT_URL + '/new',{
-    method: 'post',
-    headers: {
-    'Content-Type':'application/json'
-    },
-    body: json
-    })
-    return response.json()
+        const response = await fetch(`${BACKEND_ROOT_URL}/new`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description: task })
+        });
+        if (!response.ok) {
+            throw new Error('Failed to save task');
+        }
+        const data = await response.json();
+        renderTask(data);
+        input.value = '';
     } catch (error) {
-    alert("Error saving task " + error.message)
+        console.error(error);
     }
-    }
+}
+
+
 
 input.addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();
         const task = input.value.trim();
         if (task !== '') {
-            saveTask(task).then((json)=> {
-
+            todos.addTask(task).then((task) => {
                 renderTask(task)
                 input.value = '';
-
             })
-        }
+        }    
     }
-})
-
+});
 getTasks();
