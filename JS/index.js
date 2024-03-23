@@ -26,7 +26,7 @@ const renderSpan = (li,text) => {
 
     const renderLink = (li,id) => {
     const a = li.appendChild(document.createElement('a'))
-    a.innerHTML = '<i class="bi bi-trash"></i>"'
+    a.innerHTML = '<i class="bi bi-trash"></i>'
     a.setAttribute('style', 'float: right')
     a.addEventListener('click', (event) => {
     todos.removeTask(id).then((removed_id) => {
