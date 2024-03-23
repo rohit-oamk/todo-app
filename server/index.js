@@ -17,7 +17,16 @@ const pool = new Pool({
 });
 
 app.get('/', (req, res) => {
-    res.status(200).json({ message: 'Welcome to the Rohit TODO API' });
+    pool.query('SELECT * FROM task;', (error, results) => {
+        if (error) {
+            // Handle database query error
+            console.error('Error executing query:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            // Send fetched data as JSON response
+            res.status(200).json(results.rows);
+        }
+    });
 });
 
 app.post('/new', (req, res) => {

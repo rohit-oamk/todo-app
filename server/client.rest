@@ -6,5 +6,5 @@ POST http://localhost:3001/new
 Content-Type: application/json
 
 {
-    "description": "Test from REST client"
+    "description": "Test from alien"
 }
