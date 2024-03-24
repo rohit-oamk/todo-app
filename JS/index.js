@@ -1,7 +1,5 @@
-const BACKEND_ROOT_URL = 'http://localhost:3001';
-import { Todos } from './class/Todos.js';
-
-const todos = new Todos(BACKEND_ROOT_URL);
+// index.js
+const BACKEND_ROOT_URL = 'http://localhost:3001'; // Ensure this matches your backend URL
 
 const list = document.querySelector('ul');
 const input = document.querySelector('input');
@@ -9,48 +7,38 @@ const input = document.querySelector('input');
 input.disabled = true;
 
 const renderTask = (task) => {
-    const li = document.createElement('li')
-    li.setAttribute('class','list-group-item')
-    li.setAttribute('data-key',task.getId().toString())
-    li.innerHTML = task.getText()
-    renderSpan (li, task.getText())
-    renderLink (li, task.getId())
+    const li = document.createElement('li');
+    li.setAttribute('class', 'list-group-item');
+    li.setAttribute('data-key', task.id.toString());
+    li.innerHTML = task.description;
     list.appendChild(li);
-}
-
-const renderSpan = (li,text) => {
-    const span = li.appendChild(document.createElement('span'))
-    span.innerHTML = text
-
-    }
-
-    const renderLink = (li,id) => {
-    const a = li.appendChild(document.createElement('a'))
-    a.innerHTML = '<i class="bi bi-trash"></i>'
-    a.setAttribute('style', 'float: right')
-    a.addEventListener('click', (event) => {
-    todos.removeTask(id).then((removed_id) => {
-    const li_to_remove = document.querySelector(`[data-key='${removed_id}']`)
-    if (li_to_remove) {
-    list. removeChild(li_to_remove)
-    }
-    }).catch((error)=> {
-    alert(error)
-    })
-})
-
-    }
+};
 
 const getTasks = () => {
-    todos.getTasks().then((tasks) => {
+    fetch(`${BACKEND_ROOT_URL}`)
+    .then(response => response.json())
+    .then(tasks => {
         tasks.forEach(task => {
-            renderTask(task)
-        })
+            renderTask(task);
+        });
         input.disabled = false;
-    }).catch ((error) =>{
-        alert(error)
     })
-}
+    .catch(error => {
+        console.error(error); // Log errors properly
+        alert(error);
+    });
+};
+
+input.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const task = input.value.trim();
+        if (task !== '') {
+            saveTask(task);
+            input.value = ''; // Reset input value after successful task addition
+        }
+    }
+});
 
 const saveTask = async (task) => {
     try {
@@ -66,24 +54,10 @@ const saveTask = async (task) => {
         }
         const data = await response.json();
         renderTask(data);
-        input.value = '';
     } catch (error) {
-        console.error(error);
+        console.error(error); // Log errors properly
+        alert(error);
     }
-}
+};
 
-
-
-input.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        const task = input.value.trim();
-        if (task !== '') {
-            todos.addTask(task).then((task) => {
-                renderTask(task)
-                input.value = '';
-            })
-        }    
-    }
-});
-getTasks();
+getTasks(); 

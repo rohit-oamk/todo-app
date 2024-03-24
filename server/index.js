@@ -1,3 +1,5 @@
+// index.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -5,64 +7,55 @@ const { Pool } = require('pg');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({ extended: false }));
 
-const port = 3001;
+const port = process.env.PORT || 3001; // Ensure a default port if PORT is not defined in .env
 
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'todo_database',
-    password: 'Zombies75$',
-    port: 7551
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
 });
 
-app.get('/', (req, res) => {
-    pool.query('SELECT * FROM task;', (error, results) => {
-        if (error) {
-            // Handle database query error
-            console.error('Error executing query:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            // Send fetched data as JSON response
-            res.status(200).json(results.rows);
-        }
-    });
+app.get("/", async (req, res) => {
+    try {
+        const result = await pool.query('select * from task');
+        const rows = result.rows || []; // Ensure rows is an array
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error(error); // Log errors properly
+        res.status(500).json({ error: error.message });
+    }
 });
 
-app.post('/new', (req, res) => {
+app.post('/new', async (req, res) => {
     const { description } = req.body;
     if (!description) {
         return res.status(400).json({ error: 'Description is required' });
     }
 
-    pool.query('INSERT INTO task (description) VALUES ($1) RETURNING id', [description], (error, result) => {
-        if (error) {
-            return res.status(500).json({ error: error.message });
-        }
-        res.status(200).json({ id: result.rows[0].id });
-    });
+    try {
+        const newTask = await pool.query('INSERT INTO task (description) VALUES ($1) RETURNING *', [description]);
+        res.status(200).json(newTask.rows[0]);
+    } catch (error) {
+        console.error(error); // Log errors properly
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/delete/:id', async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        await pool.query('DELETE FROM task WHERE id = $1', [id]);
+        res.status(200).json({ id: id });
+    } catch (error) {
+        console.error(error); // Log errors properly
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
-});
-
-app.delete("/delete/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    pool.query(
-        'DELETE FROM task WHERE id = $1',
-        [id],
-        (error, result) => {
-            if (error) {
-                res.status(500).json({ error: error.message });
-            } else {
-                if (result.rowCount === 0) {
-                    res.status(404).json({ message: 'Task not found' });
-                } else {
-                    res.status(200).json({ id: id });
-                }
-            }
-        }
-    );
 });
