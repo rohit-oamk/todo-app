@@ -1,6 +1,9 @@
+
+import { Todos } from "./class/Todos.js"
+
 // index.js
 const BACKEND_ROOT_URL = 'http://localhost:3001'; // Ensure this matches your backend URL
-
+const todos = new Todos(BACKEND_ROOT_URL)
 const list = document.querySelector('ul');
 const input = document.querySelector('input');
 
@@ -8,9 +11,29 @@ input.disabled = true;
 
 const renderTask = (task) => {
     const li = document.createElement('li');
+    const span = li.appendChild(document.createElement('span'));
+    span.textContent = task.description
     li.setAttribute('class', 'list-group-item');
     li.setAttribute('data-key', task.id.toString());
-    li.innerHTML = task.description;
+    
+    const deleteButton = li.appendChild(document.createElement('button'));
+    deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+    deleteButton.setAttribute('style', 'float:right')
+    deleteButton.addEventListener('click', () => {
+        todos.removeTask(task.id).then((removed_id) => {
+            const li_to_remove = document.querySelector(`[data-key='${removed_id}']`);
+            if (li_to_remove) {
+                list.removeChild(li_to_remove);
+            }
+        }).catch((error) => {
+            console.error(error); // Log errors properly
+            alert(error.message);
+        });
+    });
+    
+    
+
+
     list.appendChild(li);
 };
 

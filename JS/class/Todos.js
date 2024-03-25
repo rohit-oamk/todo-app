@@ -48,7 +48,7 @@ class Todos {
         })
         .then((response) => response.json())
         .then((json) => {
-        this.#removeFromArray (id)
+        this.#removeFromArray(id)
         resolve(json.id)
         }, (error) => {
         reject(error)
